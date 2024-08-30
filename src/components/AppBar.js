@@ -16,10 +16,11 @@ import {
   Button,
 } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import Badge from "@mui/material/Badge";
 import ShoppingCart from "@mui/icons-material/ShoppingCart";
 import CartContext from "../context/cart";
+import TemporaryDrawer from "./Drawer";
 
 const drawerWidth = 240;
 const navItems = [
@@ -34,6 +35,9 @@ function DrawerAppBar({ window }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   let [searchParams, setSearchParams] = useSearchParams();
   const { cart, setCart } = useContext(CartContext);
+  const [open, setOpen] = useState(false);
+
+  const navigate = useNavigate();
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
@@ -48,7 +52,9 @@ function DrawerAppBar({ window }) {
       <List>
         {navItems.map((item) => (
           <ListItem
-            onClick={() => setSearchParams({ category: item.toLowerCase() })}
+            onClick={() => {
+              navigate(`/?category=${item.toLowerCase()}`);
+            }}
             key={item}
             disablePadding
           >
@@ -62,6 +68,40 @@ function DrawerAppBar({ window }) {
   );
 
   const container = window ? () => window().document.body : undefined;
+
+  const deleteCart = (id) => {
+    const cartData = JSON.parse(localStorage.getItem("cart")) || [];
+    const index = cartData.findIndex((v) => v.id === id);
+    /*
+splice is used to remove items from an array.
+Here, splice(index, 1) removes the item at the index
+ found in the previous step.
+  The 1 means only one item will be removed.
+*/
+    cartData.splice(index, 1);
+    localStorage.setItem("cart", JSON.stringify(cartData));
+    setCart(cartData);
+  };
+
+  const updateQty = (type, id) => {
+    const cartData = JSON.parse(localStorage.getItem("cart")) || [];
+    const index = cartData.findIndex((v) => v.id === id);
+
+    if (type === "+") {
+      cartData.splice(index, 1, {
+        ...cartData[index],
+        qty: cartData[index].qty + 1,
+      });
+    } else {
+      cartData.splice(index, 1, {
+        ...cartData[index],
+        qty: cartData[index].qty - 1,
+      });
+    }
+
+    localStorage.setItem("cart", JSON.stringify(cartData));
+    setCart(cartData);
+  };
 
   return (
     <Box sx={{ display: "flex" }}>
@@ -87,9 +127,9 @@ function DrawerAppBar({ window }) {
           <Box sx={{ display: { xs: "none", sm: "block" } }}>
             {navItems.map((item) => (
               <Button
-                onClick={() =>
-                  setSearchParams({ category: item.toLowerCase() })
-                }
+                onClick={() => {
+                  navigate(`/?category=${item.toLowerCase()}`);
+                }}
                 key={item}
                 sx={{ color: "#fff" }}
               >
@@ -100,15 +140,24 @@ function DrawerAppBar({ window }) {
 
           <Box sx={{ display: { xs: "none", sm: "block" } }}>
             <IconButton
+              onClick={() => setOpen(true)}
               size="large"
               aria-label="show 17 new notifications"
               color="inherit"
             >
-              <Badge badgeContent={cart} color="error">
+              <Badge badgeContent={cart.length} color="error">
                 <ShoppingCart />
               </Badge>
             </IconButton>
           </Box>
+
+          <TemporaryDrawer
+            updateQty={updateQty}
+            deleteCart={deleteCart}
+            cartData={cart}
+            open={open}
+            setOpen={setOpen}
+          />
         </Toolbar>
       </AppBar>
       <Box component="nav">

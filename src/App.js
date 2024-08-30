@@ -4,12 +4,12 @@ import CartContext from "./context/cart";
 
 
 function App() {
-  const [cart, setCart] = useState(0);
+  const [cart, setCart] = useState([]);
 
   useEffect(() => {
     const cartData = JSON.parse(localStorage.getItem("cart")) || [];
     if (cartData) {
-      setCart(cartData.length);
+      setCart(cartData);
     }
   }, []);
   return (

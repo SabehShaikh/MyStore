@@ -19,9 +19,19 @@ export default function MediaCard({ product, viewDetails }) {
 
   const addToCart = () => {
     const cartData = JSON.parse(localStorage.getItem("cart")) || [];
-    cartData.push(product.id);
+    const index = cartData.findIndex((v) => v.id === product.id);
+
+    // if item is already in cart then increase qty
+    if (index !== -1) {
+      cartData[index].qty += 1;
+      localStorage.setItem("cart", JSON.stringify(cartData));
+      setCart(cartData);
+      setOpen(true);
+      return;
+    }
+    cartData.push({ ...product, qty: 1 });
     localStorage.setItem("cart", JSON.stringify(cartData));
-    setCart(cartData.length);
+    setCart(cartData);
     setOpen(true);
   };
 
